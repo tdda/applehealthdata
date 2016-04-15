@@ -4,8 +4,10 @@ applehealthdata.py: Extract data from Apple Health App's export.xml.
 Copyright (c) 2016 Nicholas J. Radcliffe
 Licence: MIT
 """
+from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from __future__ import unicode_literals
 
 import os
 import re
@@ -14,7 +16,7 @@ import sys
 from xml.etree import ElementTree
 from collections import Counter, OrderedDict
 
-__version__ = '0.1'
+__version__ = '1.0rc1'
 
 FIELDS = OrderedDict((
     ('sourceName', 's'),
@@ -29,6 +31,8 @@ FIELDS = OrderedDict((
 ))
 
 PREFIX_RE = re.compile('^HK.*TypeIdentifier(.+)$')
+ABBREVIATE = True
+VERBOSE = True
 
 def format_freqs(counter):
     """
@@ -64,7 +68,8 @@ def abbreviate(s):
     Abbreviate particularly verbose strings based on a regular expression
     """
     m = re.match(PREFIX_RE, s)
-    return m.group(1) if m else s
+    return m.group(1) if ABBREVIATE and m else s
+
 
 def encode(s):
     """
@@ -89,7 +94,7 @@ class HealthDataExtractor(object):
         directory as the input export.xml. Reports each file written
         unless verbose has been set to False.
     """
-    def __init__(self, path, verbose=True):
+    def __init__(self, path, verbose=VERBOSE):
         self.in_path = path
         self.verbose = verbose
         self.directory = os.path.abspath(os.path.split(path)[0])
@@ -100,6 +105,7 @@ class HealthDataExtractor(object):
         self.root = self.data._root
         self.nodes = self.root.getchildren()
         self.n_nodes = len(self.nodes)
+        self.abbreviate_types()
         self.collect_stats()
 
     def report(self, msg, end='\n'):
@@ -134,6 +140,16 @@ class HealthDataExtractor(object):
             f.write(','.join(FIELDS) + '\n')
             self.handles[kind] = f
             self.report('Opening %s for writing' % path)
+
+    def abbreviate_types(self):
+        """
+        Shorten types by removing common boilerplate text.
+        """
+        for node in self.nodes:
+            if node.tag == 'Record':
+                if 'type' in node.attrib:
+                    node.attrib['type'] = abbreviate(node.attrib['type'])
+
 
     def write_records(self):
         for node in self.nodes:
