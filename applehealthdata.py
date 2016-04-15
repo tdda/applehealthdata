@@ -16,7 +16,7 @@ import sys
 from xml.etree import ElementTree
 from collections import Counter, OrderedDict
 
-__version__ = '1.0rc1'
+__version__ = '1.0rc2'
 
 FIELDS = OrderedDict((
     ('sourceName', 's'),
@@ -178,7 +178,7 @@ class HealthDataExtractor(object):
 
 
 if __name__ == '__main__':
-    if not len(sys.argv) == 2:
+    if len(sys.argv) != 2:
         print('USAGE: python applehealthdata.py /path/to/export.xml',
               file=sys.stderr)
         sys.exit(1)
