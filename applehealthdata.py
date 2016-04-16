@@ -16,7 +16,7 @@ import sys
 from xml.etree import ElementTree
 from collections import Counter, OrderedDict
 
-__version__ = '1.0'
+__version__ = '1.1'
 
 FIELDS = OrderedDict((
     ('sourceName', 's'),

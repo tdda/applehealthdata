@@ -1,0 +1,6 @@
+sourceName,sourceVersion,device,type,unit,creationDate,startDate,endDate,value
+"Health",,,"DistanceWalkingRunning","km",2014-09-21 07:08:49 +0100,2014-09-20 10:41:28 +0100,2014-09-20 10:41:30 +0100,0.00288
+"Health",,,"DistanceWalkingRunning","km",2014-09-21 07:08:49 +0100,2014-09-20 10:41:30 +0100,2014-09-20 10:41:33 +0100,0.00284
+"Health",,,"DistanceWalkingRunning","km",2014-09-21 07:08:49 +0100,2014-09-20 10:41:33 +0100,2014-09-20 10:41:36 +0100,0.00142
+"Health",,,"DistanceWalkingRunning","km",2014-09-21 07:08:49 +0100,2014-09-20 10:43:54 +0100,2014-09-20 10:43:56 +0100,0.00639
+"Health",,,"DistanceWalkingRunning","km",2014-09-21 07:08:49 +0100,2014-09-20 10:43:59 +0100,2014-09-20 10:44:01 +0100,0.0059
