@@ -11,11 +11,11 @@ Discussed in blog posts at http://tdda.info, including:
 Various commits are tagged with version numbers of the form v1.0 etc,
 so you can check out a particular version with
 
-  $ git checkout v1.0
+    $ git checkout v1.0
 
 etc., provided you pull the tags
 
-  $ git pull --tags
+    $ git pull --tags
 
 if your copy of git isn't set up to do this by default.
 
