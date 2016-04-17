@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 testapplehealthdata.py: tests for the applehealthdata.py
 
@@ -15,7 +16,12 @@ import shutil
 import sys
 import unittest
 
-from applehealthdata import HealthDataExtractor
+from collections import Counter
+
+
+from applehealthdata import (HealthDataExtractor,
+                             format_freqs, format_value,
+                             abbreviate, encode)
 
 CLEAN_UP = True
 VERBOSE = False
@@ -91,14 +97,138 @@ class TestAppleHealthDataExtractor(unittest.TestCase):
             actual = f.read()
         self.assertEqual(expected, actual)
 
-    def test_tiny_fixed_extraction(self):
+    def test_tiny_reference_extraction(self):
         path = copy_test_data()
         data = HealthDataExtractor(path, verbose=VERBOSE)
         data.extract()
         self.check_file('StepCount.csv')
         self.check_file('DistanceWalkingRunning.csv')
 
+    def test_format_freqs(self):
+        counts = Counter()
+        self.assertEqual(format_freqs(counts), '')
+        counts['one'] += 1
+        self.assertEqual(format_freqs(counts), 'one: 1')
+        counts['one'] += 1
+        self.assertEqual(format_freqs(counts), 'one: 2')
+        counts['two'] += 1
+        counts['three'] += 1
+        self.assertEqual(format_freqs(counts),
+                         '''one: 2
+three: 1
+two: 1''')
+
+    def test_format_null_values(self):
+        for dt in ('s', 'n', 'd', 'z'):
+            # Note: even an illegal type, z, produces correct output for
+            # null values.
+            # Questionable, but we'll leave as a feature
+            self.assertEqual(format_value(None, dt), '')
+
+    def test_format_numeric_values(self):
+        cases = {
+            '0': '0',
+            '3': '3',
+            '-1': '-1',
+            '2.5': '2.5',
+        }
+        for (k, v) in cases.items():
+            self.assertEqual((k, format_value(k, 'n')), (k, v))
+
+    def test_format_date_values(self):
+        hearts = 'any string not need escaping or quoting; even this: ♥♥'
+        cases = {
+            '01/02/2000 12:34:56': '01/02/2000 12:34:56',
+            hearts: hearts,
+        }
+        for (k, v) in cases.items():
+            self.assertEqual((k, format_value(k, 'd')), (k, v))
+
+    def test_format_string_values(self):
+        cases = {
+            'a': '"a"',
+            '': '""',
+            'one "2" three': r'"one \"2\" three"',
+            r'1\2\3': r'"1\\2\\3"',
+        }
+        for (k, v) in cases.items():
+            self.assertEqual((k, format_value(k, 's')), (k, v))
+
+    def test_abbreviate(self):
+        changed = {
+            'HKQuantityTypeIdentifierHeight': 'Height',
+            'HKQuantityTypeIdentifierStepCount': 'StepCount',
+            'HK*TypeIdentifierStepCount': 'StepCount',
+            'HKCharacteristicTypeIdentifierDateOfBirth': 'DateOfBirth',
+            'HKCharacteristicTypeIdentifierBiologicalSex': 'BiologicalSex',
+            'HKCharacteristicTypeIdentifierBloodType': 'BloodType',
+            'HKCharacteristicTypeIdentifierFitzpatrickSkinType':
+                                                    'FitzpatrickSkinType',
+        }
+        unchanged = [
+            '',
+            'a',
+            'aHKQuantityTypeIdentifierHeight',
+            'HKQuantityTypeIdentityHeight',
+        ]
+        for (k, v) in changed.items():
+            self.assertEqual((k, abbreviate(k)), (k, v))
+            self.assertEqual((k, abbreviate(k, False)), (k, k))
+        for k in unchanged:
+            self.assertEqual((k, abbreviate(k)), (k, k))
+
+    def test_encode(self):
+        # This test looks strange, but because of the import statments
+        #     from __future__ import unicode_literals
+        # in Python 2, type('a') is unicode, and the point of the encode
+        # function is to ensure that it has been converted to a UTF-8 string
+        # before writing to file.
+        self.assertEqual(type(encode('a')), str)
+
+    def test_extracted_reference_stats(self):
+        path = copy_test_data()
+        data = HealthDataExtractor(path, verbose=VERBOSE)
+
+        self.assertEqual(data.n_nodes, 19)
+        expectedRecordCounts = [
+           ('DistanceWalkingRunning', 5),
+           ('StepCount', 10),
+        ]
+        self.assertEqual(sorted(data.record_types.items()),
+                         expectedRecordCounts)
+
+        expectedTagCounts = [
+           ('ActivitySummary', 2),
+           ('ExportDate', 1),
+           ('Me', 1),
+           ('Record', 15),
+        ]
+        self.assertEqual(sorted(data.tags.items()),
+                         expectedTagCounts)
+        expectedFieldCounts = [
+            ('HKCharacteristicTypeIdentifierBiologicalSex', 1),
+            ('HKCharacteristicTypeIdentifierBloodType', 1),
+            ('HKCharacteristicTypeIdentifierDateOfBirth', 1),
+            ('HKCharacteristicTypeIdentifierFitzpatrickSkinType', 1),
+            ('activeEnergyBurned', 2),
+            ('activeEnergyBurnedGoal', 2),
+            ('activeEnergyBurnedUnit', 2),
+            ('appleExerciseTime', 2),
+            ('appleExerciseTimeGoal', 2),
+            ('appleStandHours', 2),
+            ('appleStandHoursGoal', 2),
+            ('creationDate', 15),
+            ('dateComponents', 2),
+            ('endDate', 15),
+            ('sourceName', 15),
+            ('startDate', 15),
+            ('type', 15),
+            ('unit', 15),
+            ('value', 16),
+        ]
+        self.assertEqual(sorted(data.fields.items()),
+                         expectedFieldCounts)
+
 
 if __name__ == '__main__':
     unittest.main()
-

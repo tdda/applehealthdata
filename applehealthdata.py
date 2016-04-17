@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 applehealthdata.py: Extract data from Apple Health App's export.xml.
 
@@ -16,7 +17,7 @@ import sys
 from xml.etree import ElementTree
 from collections import Counter, OrderedDict
 
-__version__ = '1.1'
+__version__ = '1.2'
 
 FIELDS = OrderedDict((
     ('sourceName', 's'),
@@ -63,12 +64,12 @@ def format_value(value, datatype):
         raise KeyError('Unexpected format value: %s' % datatype)
 
 
-def abbreviate(s):
+def abbreviate(s, enabled=ABBREVIATE):
     """
     Abbreviate particularly verbose strings based on a regular expression
     """
     m = re.match(PREFIX_RE, s)
-    return m.group(1) if ABBREVIATE and m else s
+    return m.group(1) if enabled and m else s
 
 
 def encode(s):
