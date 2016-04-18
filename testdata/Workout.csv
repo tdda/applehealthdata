@@ -1,0 +1,2 @@
+sourceName,sourceVersion,device,creationDate,startDate,endDate,workoutActivityType,duration,durationUnit,totalDistance,totalDistanceUnit,totalEnergyBurned,totalEnergyBurnedUnit
+"NJR Apple Watch","2.2",,2016-04-02 11:12:57 +0100,2016-04-02 10:40:38 +0100,2016-04-02 11:12:22 +0100,"HKWorkoutActivityTypeOther",31.73680251737436,"min",0,"km",139.3170000000021,"kcal"

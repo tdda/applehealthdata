@@ -97,4 +97,6 @@
  <Record type="HKQuantityTypeIdentifierDistanceWalkingRunning" sourceName="Health" unit="km" creationDate="2014-09-21 07:08:49 +0100" startDate="2014-09-20 10:43:59 +0100" endDate="2014-09-20 10:44:01 +0100" value="0.0059"/>
  <ActivitySummary dateComponents="2016-04-14" activeEnergyBurned="700.698" activeEnergyBurnedGoal="680" activeEnergyBurnedUnit="kcal" appleExerciseTime="89" appleExerciseTimeGoal="30" appleStandHours="16" appleStandHoursGoal="12"/>
  <ActivitySummary dateComponents="2016-04-15" activeEnergyBurned="56.609" activeEnergyBurnedGoal="680" activeEnergyBurnedUnit="kcal" appleExerciseTime="6" appleExerciseTimeGoal="30" appleStandHours="2" appleStandHoursGoal="12"/>
+  <Workout workoutActivityType="HKWorkoutActivityTypeOther" duration="31.73680251737436" durationUnit="min" totalDistance="0" totalDistanceUnit="km" totalEnergyBurned="139.3170000000021" totalEnergyBurnedUnit="kcal" sourceName="NJR Apple Watch" sourceVersion="2.2" creationDate="2016-04-02 11:12:57 +0100" startDate="2016-04-02 10:40:38 +0100" endDate="2016-04-02 11:12:22 +0100"/>
 </HealthData>
+

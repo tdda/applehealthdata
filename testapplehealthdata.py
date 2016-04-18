@@ -95,14 +95,15 @@ class TestAppleHealthDataExtractor(unittest.TestCase):
             expected = f.read()
         with open(actual_output) as f:
             actual = f.read()
-        self.assertEqual(expected, actual)
+        self.assertEqual((filename, expected), (filename, actual))
 
     def test_tiny_reference_extraction(self):
         path = copy_test_data()
         data = HealthDataExtractor(path, verbose=VERBOSE)
         data.extract()
-        self.check_file('StepCount.csv')
-        self.check_file('DistanceWalkingRunning.csv')
+        for kind in ('StepCount', 'DistanceWalkingRunning',
+                     'Workout', 'ActivitySummary'):
+            self.check_file('%s.csv' % kind)
 
     def test_format_freqs(self):
         counts = Counter()
@@ -189,7 +190,7 @@ two: 1''')
         path = copy_test_data()
         data = HealthDataExtractor(path, verbose=VERBOSE)
 
-        self.assertEqual(data.n_nodes, 19)
+        self.assertEqual(data.n_nodes, 20)
         expectedRecordCounts = [
            ('DistanceWalkingRunning', 5),
            ('StepCount', 10),
@@ -197,14 +198,24 @@ two: 1''')
         self.assertEqual(sorted(data.record_types.items()),
                          expectedRecordCounts)
 
+        self.assertEqual(data.n_nodes, 20)
+        expectedOtherCounts = [
+           ('ActivitySummary', 2),
+           ('Workout', 1),
+        ]
+        self.assertEqual(sorted(data.other_types.items()),
+                         expectedOtherCounts)
+
         expectedTagCounts = [
            ('ActivitySummary', 2),
            ('ExportDate', 1),
            ('Me', 1),
            ('Record', 15),
+           ('Workout', 1),
         ]
         self.assertEqual(sorted(data.tags.items()),
                          expectedTagCounts)
+
         expectedFieldCounts = [
             ('HKCharacteristicTypeIdentifierBiologicalSex', 1),
             ('HKCharacteristicTypeIdentifierBloodType', 1),
@@ -217,17 +228,26 @@ two: 1''')
             ('appleExerciseTimeGoal', 2),
             ('appleStandHours', 2),
             ('appleStandHoursGoal', 2),
-            ('creationDate', 15),
+            ('creationDate', 16),
             ('dateComponents', 2),
-            ('endDate', 15),
-            ('sourceName', 15),
-            ('startDate', 15),
+            ('duration', 1),
+            ('durationUnit', 1),
+            ('endDate', 16),
+            ('sourceName', 16),
+            ('sourceVersion', 1),
+            ('startDate', 16),
+            ('totalDistance', 1),
+            ('totalDistanceUnit', 1),
+            ('totalEnergyBurned', 1),
+            ('totalEnergyBurnedUnit', 1),
             ('type', 15),
             ('unit', 15),
             ('value', 16),
+            ('workoutActivityType', 1)
         ]
         self.assertEqual(sorted(data.fields.items()),
                          expectedFieldCounts)
+
 
 
 if __name__ == '__main__':

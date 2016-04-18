@@ -17,9 +17,9 @@ import sys
 from xml.etree import ElementTree
 from collections import Counter, OrderedDict
 
-__version__ = '1.2'
+__version__ = '1.3'
 
-FIELDS = OrderedDict((
+RECORD_FIELDS = OrderedDict((
     ('sourceName', 's'),
     ('sourceVersion', 's'),
     ('device', 's'),
@@ -30,6 +30,40 @@ FIELDS = OrderedDict((
     ('endDate', 'd'),
     ('value', 'n'),
 ))
+
+ACTIVITY_SUMMARY_FIELDS = OrderedDict((
+    ('dateComponents', 'd'),
+    ('activeEnergyBurned', 'n'),
+    ('activeEnergyBurnedGoal', 'n'),
+    ('activeEnergyBurnedUnit', 's'),
+    ('appleExerciseTime', 's'),
+    ('appleExerciseTimeGoal', 's'),
+    ('appleStandHours', 'n'),
+    ('appleStandHoursGoal', 'n'),
+))
+
+WORKOUT_FIELDS = OrderedDict((
+    ('sourceName', 's'),
+    ('sourceVersion', 's'),
+    ('device', 's'),
+    ('creationDate', 'd'),
+    ('startDate', 'd'),
+    ('endDate', 'd'),
+    ('workoutActivityType', 's'),
+    ('duration', 'n'),
+    ('durationUnit', 's'),
+    ('totalDistance', 'n'),
+    ('totalDistanceUnit', 's'),
+    ('totalEnergyBurned', 'n'),
+    ('totalEnergyBurnedUnit', 's'),
+))
+
+FIELDS = {
+    'Record': RECORD_FIELDS,
+    'ActivitySummary': ACTIVITY_SUMMARY_FIELDS,
+    'Workout': WORKOUT_FIELDS,
+}
+
 
 PREFIX_RE = re.compile('^HK.*TypeIdentifier(.+)$')
 ABBREVIATE = True
@@ -123,10 +157,32 @@ class HealthDataExtractor(object):
                 self.fields[k] += 1
 
     def count_record_types(self):
+        """
+        Counts occurrences of each type of (conceptual) "record" in the data.
+
+        In the case of nodes of type 'Record', this counts the number of
+        occurrences of each 'type' or record in self.record_types.
+
+        In the case of nodes of type 'ActivitySummary' and 'Workout',
+        it just counts those in self.other_types.
+
+        The slightly different handling reflects the fact that 'Record'
+        nodes come in a variety of different subtypes that we want to write
+        to different data files, whereas (for now) we are going to write
+        all Workout entries to a single file, and all ActivitySummary
+        entries to another single file.
+        """
         self.record_types = Counter()
+        self.other_types = Counter()
         for record in self.nodes:
             if record.tag == 'Record':
                 self.record_types[record.attrib['type']] += 1
+            elif record.tag in ('ActivitySummary', 'Workout'):
+                self.other_types[record.tag] += 1
+            elif record.tag in ('Export', 'Me'):
+                pass
+            else:
+                self.report('Unexpected node of type %s.' % record.tag)
 
     def collect_stats(self):
         self.count_record_types()
@@ -135,10 +191,12 @@ class HealthDataExtractor(object):
     def open_for_writing(self):
         self.handles = {}
         self.paths = []
-        for kind in self.record_types:
+        for kind in (list(self.record_types) + list(self.other_types)):
             path = os.path.join(self.directory, '%s.csv' % abbreviate(kind))
             f = open(path, 'w')
-            f.write(','.join(FIELDS) + '\n')
+            headerType = (kind if kind in ('Workout', 'ActivitySummary')
+                               else 'Record')
+            f.write(','.join(FIELDS[headerType].keys()) + '\n')
             self.handles[kind] = f
             self.report('Opening %s for writing' % path)
 
@@ -151,14 +209,14 @@ class HealthDataExtractor(object):
                 if 'type' in node.attrib:
                     node.attrib['type'] = abbreviate(node.attrib['type'])
 
-
     def write_records(self):
+        kinds = FIELDS.keys()
         for node in self.nodes:
-            if node.tag == 'Record':
+            if node.tag in kinds:
                 attributes = node.attrib
-                kind = attributes['type']
+                kind = attributes['type'] if node.tag == 'Record' else node.tag
                 values = [format_value(attributes.get(field), datatype)
-                          for (field, datatype) in FIELDS.items()]
+                          for (field, datatype) in FIELDS[node.tag].items()]
                 line = encode(','.join(values) + '\n')
                 self.handles[kind].write(line)
 
