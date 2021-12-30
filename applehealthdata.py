@@ -138,7 +138,7 @@ class HealthDataExtractor(object):
             self.data = ElementTree.parse(f)
             self.report('done')
         self.root = self.data._root
-        self.nodes = self.root.getchildren()
+        self.nodes = list(self.root)
         self.n_nodes = len(self.nodes)
         self.abbreviate_types()
         self.collect_stats()
